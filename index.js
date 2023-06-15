@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { RuntimeArgs, CLValueBuilder, Contracts, CasperClient, Keys, CLPublicKey } = require("casper-js-sdk");
+const { RuntimeArgs, CLValueBuilder, Contracts, CasperClient, Keys, CLPublicKey, Signer, CasperServiceByJsonRPC } = require("casper-js-sdk");
 
 const client = new CasperClient("https://rpc.testnet.casperlabs.io/rpc");
 const contract = new Contracts.Contract(client);
@@ -17,9 +17,9 @@ async function install() {
   });
 
   const deploy = contract.install(wasm, args, "110000000000", keys.publicKey, "casper-test", [keys]);
-
+  console.log(deploy);
   try {
-    return await client.putDeploy(deploy);
+    // return await client.putDeploy(deploy);
   } catch (error) {
     return error;
   }
@@ -120,6 +120,34 @@ const mint = async () => {
 //     console.log("err", err);
 //   });
 
-transfer()
-  .then((deployHash) => console.log("hash", deployHash))
-  .catch((error) => console.error("error", error));
+// transfer()
+//   .then((deployHash) => console.log("hash", deployHash))
+//   .catch((error) => console.error("error", error));
+
+// const fetchData = async () => {
+//   const x = new BalanceServiceByJsonRPC("https://rpc.testnet.casperlabs.io/rpc");
+
+//   const pubkey = "0185de089bba8a1caee9598901ff6f2c2088c829fbe4bc2cc23bb8075cd95ef30c";
+
+//   const receipent = CLPublicKey.fromHex(pubkey);
+
+//   const balance = await x.getAccountBalance("e311ac55123291d8d3e91780bf5719c199b9f626a7197f9150b157d4adb3e3e4", receipent);
+
+//   console.log(balance);
+// };
+
+const fetch = async () => {
+  const pubkey = "0185de089bba8a1caee9598901ff6f2c2088c829fbe4bc2cc23bb8075cd95ef30c";
+
+  const receipent = CLPublicKey.fromHex(pubkey);
+  const instance = new CasperServiceByJsonRPC("https://rpc.testnet.casperlabs.io/rpc");
+
+  // const aa = await instance.getBlockInfoByHeight(1804098);
+
+  const stateRootHash = await instance.getStateRootHash();
+  // const x = await instance.get(stateRootHash, "", "uref-7169700b74a986640d559a5c31a5db7d398c647c11e0b2ae78c4df00490014de-007");
+  // // const x = await instance.getAccountBalanceUrefByPublicKey(stateRootHash, receipent);
+  // console.log(x);
+};
+
+fetch();
