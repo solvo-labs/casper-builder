@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { RuntimeArgs, CLValueBuilder, Contracts, CasperClient, Keys, CLPublicKey, Signer, CasperServiceByJsonRPC } = require("casper-js-sdk");
+const { RuntimeArgs, CLValueBuilder, Contracts, CasperClient, Keys, CLPublicKey, Signer, CasperServiceByJsonRPC, CLAccountHash } = require("casper-js-sdk");
 
 const client = new CasperClient("https://rpc.testnet.casperlabs.io/rpc");
 const contract = new Contracts.Contract(client);
@@ -14,6 +14,7 @@ async function install() {
     symbol: CLValueBuilder.string("Pik"),
     decimals: CLValueBuilder.u8(8),
     total_supply: CLValueBuilder.u256(100000000000),
+    enable_mint_burn: CLValueBuilder.bool(1),
   });
 
   const deploy = contract.install(wasm, args, "110000000000", keys.publicKey, "casper-test", [keys]);
@@ -140,6 +141,8 @@ const fetch = async () => {
   const pubkey = "0185de089bba8a1caee9598901ff6f2c2088c829fbe4bc2cc23bb8075cd95ef30c";
 
   const receipent = CLPublicKey.fromHex(pubkey);
+
+  console.log(receipent.data.toString());
   const instance = new CasperServiceByJsonRPC("https://rpc.testnet.casperlabs.io/rpc");
 
   // const aa = await instance.getBlockInfoByHeight(1804098);
@@ -150,4 +153,8 @@ const fetch = async () => {
   // console.log(x);
 };
 
-fetch();
+// fetch();
+
+const pubkey = CLPublicKey.fromHex("0185de089bba8a1caee9598901ff6f2c2088c829fbe4bc2cc23bb8075cd95ef30c");
+
+console.log(pubkey.toAccountHashStr().slice(13));
