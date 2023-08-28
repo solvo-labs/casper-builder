@@ -157,4 +157,21 @@ const fetch = async () => {
 
 const pubkey = CLPublicKey.fromHex("0185de089bba8a1caee9598901ff6f2c2088c829fbe4bc2cc23bb8075cd95ef30c");
 
-console.log(pubkey.toAccountHashStr().slice(13));
+const getAccountHash = () => {
+  return Buffer.from(pubkey.toAccountHash()).toString("hex");
+};
+
+const getAccountInfo = async () => {
+  const accountHash = getAccountHash();
+  const instance = new CasperServiceByJsonRPC("https://rpc.testnet.casperlabs.io/rpc");
+  const stateRootHash = await instance.getStateRootHash();
+  const { Account: accountInfo } = await client.nodeClient.getBlockState(stateRootHash, `account-hash-${accountHash}`, []);
+
+  return accountInfo;
+};
+
+const getNamedKeys = async () => {
+  const accountInfo = await getAccountInfo();
+
+  return accountInfo;
+};
