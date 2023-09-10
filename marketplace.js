@@ -71,15 +71,15 @@ async function install2() {
 }
 
 async function add_listing() {
-  contract.setContractHash("hash-803f95e1be880c6d2c11a82ed3b727a9acdb4e53d00c2b17e80a01bc2e0b9900");
+  contract.setContractHash("hash-2c2778415e856d528e2717eba8578b907de8b366b7a9860a3c63063e4a9ef2a7");
 
   const args = RuntimeArgs.fromMap({
     collection: CasperHelpers.stringToKey("b1acd833758036848ff21448621e9a545af5e96c9a6bf27a4103d59bb925867f"),
-    token_id: CLValueBuilder.u256(0),
-    price: CLValueBuilder.u256(10000),
+    token_id: CLValueBuilder.u64(0),
+    price: CLValueBuilder.u256(75 * 1_000_000_000),
   });
 
-  const deploy = contract.callEntrypoint("add_listing", args, keys.publicKey, "casper-test", "6000000000", [keys]);
+  const deploy = contract.callEntrypoint("add_listing", args, keys.publicKey, "casper-test", "10000000000", [keys]);
 
   try {
     const tx = await client.putDeploy(deploy);
@@ -90,7 +90,37 @@ async function add_listing() {
     return error;
   }
 }
+
+async function add_whitelist() {
+  contract.setContractHash("hash-2c2778415e856d528e2717eba8578b907de8b366b7a9860a3c63063e4a9ef2a7");
+
+  const args = RuntimeArgs.fromMap({
+    collection: CasperHelpers.stringToKey("b1acd833758036848ff21448621e9a545af5e96c9a6bf27a4103d59bb925867f"),
+    // token_id: CLValueBuilder.u64(0),
+    // price: CLValueBuilder.u256(75 * 1_000_000_000),
+  });
+
+  const deploy = contract.callEntrypoint("whitelist", args, keys.publicKey, "casper-test", "10000000000", [keys]);
+
+  try {
+    const tx = await client.putDeploy(deploy);
+
+    console.log("tx", tx);
+  } catch (error) {
+    console.log("error", error);
+    return error;
+  }
+}
+
+
+// async function liste() {
+//   contract.setContractHash("hash-2c2778415e856d528e2717eba8578b907de8b366b7a9860a3c63063e4a9ef2a7");
+//   const list = await contract.queryContractDictionary("listings_dict", "1");
+//   console.log(list);
+// }
 // install2();
 // const data = keys.accountHash().toString();
 
-add_listing();
+// add_listing();
+// add_whitelist();
+// liste();
