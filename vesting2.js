@@ -1,5 +1,19 @@
 const fs = require("fs");
-const { RuntimeArgs, CLValueBuilder, Contracts, CasperClient, Keys, CLPublicKey, CLURef, Signer, CasperServiceByJsonRPC, CLAccountHash, CLByteArray } = require("casper-js-sdk");
+const {
+  RuntimeArgs,
+  CLValueBuilder,
+  Contracts,
+  CasperClient,
+  Keys,
+  CLPublicKey,
+  CLURef,
+  Signer,
+  CasperServiceByJsonRPC,
+  CLAccountHash,
+  CLByteArray,
+  decodeBase16,
+  AccessRights,
+} = require("casper-js-sdk");
 const { BN } = require("bn.js");
 const client = new CasperClient("https://rpc.testnet.casperlabs.io/rpc");
 
@@ -8,10 +22,10 @@ const depositWasm = new Uint8Array(fs.readFileSync("deposit.wasm"));
 
 const keys = Keys.Ed25519.loadKeyPairFromPrivateFile("test.pem");
 
-const token = "6e7b9e79c3a3907f5befb4079169d2e969dcb36a3a646eb0b2418cfa1826a1d7";
+const token = "6eae5730c2d15254fc9c2de5cac06dd7ab68357ce054163dbff8df71e3b4ce50";
 
 const contract = new Contracts.Contract(client);
-contract.setContractHash("hash-cba19cd9f0848ec807ce88e25f2e754e2fe136be63e74972367f2904cee59978");
+contract.setContractHash("hash-a1407196cc7f5df86184706438b7ee6c392154e890eb1e974ef7b310dd44d94c");
 
 async function install() {
   const args = RuntimeArgs.fromMap({
@@ -23,6 +37,8 @@ async function install() {
     drip_amount: CLValueBuilder.u256(10 * Math.pow(10, 8)),
     total_amount: CLValueBuilder.u256(100 * Math.pow(10, 8)),
     admin_release_duration: CLValueBuilder.u256(0),
+    // token_contract_hash: new CLAccountHash(Buffer.from(token, "hex")),
+    token_contract_hash: CLValueBuilder.string(token),
   });
 
   const deploy = contract.install(vestingWasm, args, "110000000000", keys.publicKey, "casper-test", [keys]);
@@ -38,18 +54,13 @@ async function install() {
 }
 
 async function deposit() {
-  const args = RuntimeArgs.fromMap({
-    deposit_contract_hash: new CLAccountHash(Buffer.from("cba19cd9f0848ec807ce88e25f2e754e2fe136be63e74972367f2904cee59978", "hex")),
-    token_contract_hash: new CLAccountHash(Buffer.from(token, "hex")),
-    amount_mint: CLValueBuilder.u256(100 * Math.pow(10, 8)),
-  });
-
-  const deploy = contract.install(depositWasm, args, 5 * Math.pow(10, 9), keys.publicKey, "casper-test", [keys]);
-
   try {
-    const tx = await client.putDeploy(deploy);
+    const args = RuntimeArgs.fromMap({});
 
-    console.log("tx", tx);
+    const deploy = await contract.callEntrypoint("deposit", args, keys.publicKey, "casper-test", "6000000000", [keys]);
+
+    const tx = await client.putDeploy(deploy);
+    console.log(tx);
   } catch (error) {
     console.log("error", error);
     return error;
@@ -76,7 +87,7 @@ const withdraw = async () => {
     amount: CLValueBuilder.u512("110000000000"),
   });
 
-  const deploy = contract.callEntrypoint("withdraw", args, keys.publicKey, "casper-test", "6000000000", [keys]);
+  const deploy = contract.callEntrypoint("withdraw", {}, keys.publicKey, "casper-test", "6000000000", [keys]);
 
   try {
     const tx = await client.putDeploy(deploy);
@@ -103,8 +114,8 @@ const withdraw = async () => {
 // fetchVesting();
 
 // getDepositPurse();
-// deposit();
+deposit();
 
-install();
+// install();
 
 // withdraw();

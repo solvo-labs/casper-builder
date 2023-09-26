@@ -3,7 +3,7 @@ const { RuntimeArgs, CLValueBuilder, Contracts, CasperClient, Keys, CLPublicKey,
 const { BN } = require("bn.js");
 const client = new CasperClient("https://rpc.testnet.casperlabs.io/rpc");
 
-const wasm = new Uint8Array(fs.readFileSync("marketplacec.wasm"));
+const wasm = new Uint8Array(fs.readFileSync("mkp.wasm"));
 const wasm2 = new Uint8Array(fs.readFileSync("execute_listing_call.wasm"));
 
 const keys = Keys.Ed25519.loadKeyPairFromPrivateFile("test.pem");
@@ -34,6 +34,7 @@ async function install() {
   const receipent = CLPublicKey.fromHex(pubkey);
   const args = RuntimeArgs.fromMap({
     fee_wallet: CLValueBuilder.key(receipent),
+    contract_name: CLValueBuilder.string("test_4567"),
   });
 
   const deploy = contract.install(wasm, args, "150000000000", keys.publicKey, "casper-test", [keys]);
@@ -93,4 +94,12 @@ async function add_listing() {
 // install2();
 // const data = keys.accountHash().toString();
 
-add_listing();
+// add_listing();
+
+// install();
+
+const test = async () => {
+  const x = await client.getDeploy("a13b62f8d844b8e983cfa8a8027d3904a528a339c096c9573fb0ff2fc7695f18");
+  const y = await client.nodeClient.getDeployInfo("a13b62f8d844b8e983cfa8a8027d3904a528a339c096c9573fb0ff2fc7695f18");
+};
+test();
