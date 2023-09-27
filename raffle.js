@@ -53,11 +53,11 @@ const collection = "2796ff3177e5c1883f0746971339e5a630c7d79715288c2512b5680cb3a1
 
 async function install() {
   const args = RuntimeArgs.fromMap({
-    name: CLValueBuilder.string("afo"),
+    name: CLValueBuilder.string("gogog"),
     start_date: CLValueBuilder.u64(Date.now()),
-    end_date: CLValueBuilder.u64(Date.now() + 10000),
+    end_date: CLValueBuilder.u64(Date.now() + 50000),
     collection: CasperHelpers.stringToKey(collection),
-    nft_index: CLValueBuilder.u64(10),
+    nft_index: CLValueBuilder.u64(11),
     price: CLValueBuilder.u512(5 * 1_000_000_000),
   });
 
@@ -79,8 +79,8 @@ const approve = async () => {
 
   // operator = Raffle Contract hash
   const args = RuntimeArgs.fromMap({
-    operator: new CLKey(new CLByteArray(Uint8Array.from(Buffer.from("93230cffe6e970871fec14831583eeb23b634f09fbd81774189bbe949dbeeff9", "hex")))),
-    token_id: CLValueBuilder.u64(10),
+    operator: new CLKey(new CLByteArray(Uint8Array.from(Buffer.from("9790f2fead919d7b79c2347ff8084e4cb3d84d276a432139697362844604813e", "hex")))),
+    token_id: CLValueBuilder.u64(11),
   });
 
   const deploy = contract.callEntrypoint("approve", args, keys.publicKey, "casper-test", "4000000000", [keys]);
@@ -154,7 +154,7 @@ const approve = async () => {
 // init();
 
 const deposit = async () => {
-  contract.setContractHash("hash-93230cffe6e970871fec14831583eeb23b634f09fbd81774189bbe949dbeeff9");
+  contract.setContractHash("hash-9790f2fead919d7b79c2347ff8084e4cb3d84d276a432139697362844604813e");
 
   const args = RuntimeArgs.fromMap({});
 
@@ -187,12 +187,12 @@ const getPrice = async () => {
   }
 };
 
-const claim = async () => {
-  contract.setContractHash("hash-12f7c231b2779fad13b0ac7ce14c31dddf907b3ff988a07aaf0dc079156d076a");
+const draw = async () => {
+  contract.setContractHash("hash-9790f2fead919d7b79c2347ff8084e4cb3d84d276a432139697362844604813e");
 
   const args = RuntimeArgs.fromMap({});
 
-  const deploy = contract.callEntrypoint("claim", args, keys.publicKey, "casper-test", "6000000000", [keys]);
+  const deploy = contract.callEntrypoint("draw", args, keys.publicKey, "casper-test", "6000000000", [keys]);
 
   try {
     const tx = await client.putDeploy(deploy);
@@ -204,12 +204,12 @@ const claim = async () => {
   }
 };
 
-const draw = async () => {
-  contract.setContractHash("hash-93230cffe6e970871fec14831583eeb23b634f09fbd81774189bbe949dbeeff9");
+const claim = async () => {
+  contract.setContractHash("hash-9790f2fead919d7b79c2347ff8084e4cb3d84d276a432139697362844604813e");
 
   const args = RuntimeArgs.fromMap({});
 
-  const deploy = contract.callEntrypoint("draw", args, keys.publicKey, "casper-test", "6000000000", [keys]);
+  const deploy = contract.callEntrypoint("claim", args, keys.publicKey, "casper-test", "6000000000", [keys]);
 
   try {
     const tx = await client.putDeploy(deploy);
@@ -226,7 +226,7 @@ async function buy_install() {
 
   const args = RuntimeArgs.fromMap({
     // raffle_contract_hash: CasperHelpers.stringToKey("61b408af2f990fc16476e93bcdc6727e2b79879f3abded73e64ae4dff39e46cd"),
-    raffle_contract_hash: new CLAccountHash(Buffer.from("93230cffe6e970871fec14831583eeb23b634f09fbd81774189bbe949dbeeff9", "hex")),
+    raffle_contract_hash: new CLAccountHash(Buffer.from("9790f2fead919d7b79c2347ff8084e4cb3d84d276a432139697362844604813e", "hex")),
     amount: CLValueBuilder.u512(5 * 1_000_000_000),
   });
 
@@ -254,6 +254,9 @@ async function buy_install() {
 // Step 4 - Buy ticket for Raffle (User)
 // buy_install();
 
-// buy_install();
+// Step 5 - Get Draw
 
-draw();
+// draw();
+
+// Step 6 - Claim winner
+// claim();
