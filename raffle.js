@@ -53,11 +53,11 @@ const collection = "2796ff3177e5c1883f0746971339e5a630c7d79715288c2512b5680cb3a1
 
 async function install() {
   const args = RuntimeArgs.fromMap({
-    name: CLValueBuilder.string("hg2"),
+    name: CLValueBuilder.string("afo"),
     start_date: CLValueBuilder.u64(Date.now()),
     end_date: CLValueBuilder.u64(Date.now() + 10000),
     collection: CasperHelpers.stringToKey(collection),
-    nft_index: CLValueBuilder.u64(5),
+    nft_index: CLValueBuilder.u64(10),
     price: CLValueBuilder.u512(5 * 1_000_000_000),
   });
 
@@ -79,8 +79,8 @@ const approve = async () => {
 
   // operator = Raffle Contract hash
   const args = RuntimeArgs.fromMap({
-    operator: new CLKey(new CLByteArray(Uint8Array.from(Buffer.from("d07c2bf693bf192b84e62147f0be0ab4f8af4c892820839814f158ee4e650740", "hex")))),
-    token_id: CLValueBuilder.u64(5),
+    operator: new CLKey(new CLByteArray(Uint8Array.from(Buffer.from("93230cffe6e970871fec14831583eeb23b634f09fbd81774189bbe949dbeeff9", "hex")))),
+    token_id: CLValueBuilder.u64(10),
   });
 
   const deploy = contract.callEntrypoint("approve", args, keys.publicKey, "casper-test", "4000000000", [keys]);
@@ -154,7 +154,7 @@ const approve = async () => {
 // init();
 
 const deposit = async () => {
-  contract.setContractHash("hash-d07c2bf693bf192b84e62147f0be0ab4f8af4c892820839814f158ee4e650740");
+  contract.setContractHash("hash-93230cffe6e970871fec14831583eeb23b634f09fbd81774189bbe949dbeeff9");
 
   const args = RuntimeArgs.fromMap({});
 
@@ -205,7 +205,7 @@ const claim = async () => {
 };
 
 const draw = async () => {
-  contract.setContractHash("hash-d07c2bf693bf192b84e62147f0be0ab4f8af4c892820839814f158ee4e650740");
+  contract.setContractHash("hash-93230cffe6e970871fec14831583eeb23b634f09fbd81774189bbe949dbeeff9");
 
   const args = RuntimeArgs.fromMap({});
 
@@ -226,7 +226,7 @@ async function buy_install() {
 
   const args = RuntimeArgs.fromMap({
     // raffle_contract_hash: CasperHelpers.stringToKey("61b408af2f990fc16476e93bcdc6727e2b79879f3abded73e64ae4dff39e46cd"),
-    raffle_contract_hash: new CLAccountHash(Buffer.from("d07c2bf693bf192b84e62147f0be0ab4f8af4c892820839814f158ee4e650740", "hex")),
+    raffle_contract_hash: new CLAccountHash(Buffer.from("93230cffe6e970871fec14831583eeb23b634f09fbd81774189bbe949dbeeff9", "hex")),
     amount: CLValueBuilder.u512(5 * 1_000_000_000),
   });
 
