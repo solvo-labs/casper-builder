@@ -59,6 +59,7 @@ async function install() {
     collection: CasperHelpers.stringToKey(collection),
     nft_index: CLValueBuilder.u64(11),
     price: CLValueBuilder.u512(5 * 1_000_000_000),
+    storage_key: new CLAccountHash(Buffer.from("0302ae38b55a40bee18e32b7a100fd37eb2cc50b527dcfd1efdb7a18a28ccd3d", "hex")),
   });
 
   const deploy = contract.install(raffleWasm, args, "100000000000", keys.publicKey, "casper-test", [keys]);
@@ -243,7 +244,7 @@ async function buy_install() {
 }
 
 // Step 1 - Create Raffle (Admin)
-// install();
+install();
 
 // Step 2 - Approve for Raffle Contract from CEP78 Contract (Admin)
 // approve();
