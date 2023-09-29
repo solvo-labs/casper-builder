@@ -1,5 +1,18 @@
 const fs = require("fs");
-const { RuntimeArgs, CLValueBuilder, Contracts, CasperClient, Keys, CLPublicKey, CLURef, Signer, CasperServiceByJsonRPC, CLAccountHash, CLByteArray } = require("casper-js-sdk");
+const {
+  RuntimeArgs,
+  CLValueBuilder,
+  CLPublicKeyTag,
+  Contracts,
+  CasperClient,
+  Keys,
+  CLPublicKey,
+  CLURef,
+  Signer,
+  CasperServiceByJsonRPC,
+  CLAccountHash,
+  CLByteArray,
+} = require("casper-js-sdk");
 const { BN } = require("bn.js");
 const client = new CasperClient("https://rpc.testnet.casperlabs.io/rpc");
 
@@ -130,7 +143,7 @@ async function transfer_from() {
     // owner: CLValueBuilder.key(recipient),
     owner: keys.publicKey,
     recipient: CasperHelpers.stringToKey("7ec1626c7496d1f64180d818c4bb2ed5608d443de1780f5d84913f9b13162d1d"),
-    amount: CLValueBuilder.u256(100 * Math.pow(10, 8)),
+    amount: CLValueBuilder.publicKey(100 * Math.pow(10, 8)),
   });
 
   const deploy = contract.callEntrypoint("transfer_from", args, keys.publicKey, "casper-test", "6000000000", [keys]);
