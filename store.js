@@ -29,7 +29,7 @@ class CasperHelpers {
 
 async function install() {
   const args = RuntimeArgs.fromMap({
-    name: CLValueBuilder.string("ozzi"),
+    name: CLValueBuilder.string("demo-2"),
   });
 
   const deploy = contract.install(wasm, args, "100000000000", keys.publicKey, "casper-test", [keys]);
@@ -67,4 +67,6 @@ const store = async () => {
 
 // ab914b9df9d509c01ad9830e3b7bbb7a7927021fb9720afe8d7d59f851c4fe65
 
-store();
+// store();
+
+install();
