@@ -250,7 +250,7 @@ install();
 // approve();
 
 // Step 3 - Deposit Owner nft to contract (Admin)
-// deposit();
+deposit();
 
 // Step 4 - Buy ticket for Raffle (User)
 // buy_install();
