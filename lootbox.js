@@ -1,16 +1,17 @@
 const fs = require("fs");
 const { RuntimeArgs, CLValueBuilder, Contracts, CLKey, CasperClient, CLByteArray, Keys, CLPublicKey, Signer, CasperServiceByJsonRPC, CLAccountHash } = require("casper-js-sdk");
-
+const axios = require("axios");
 const client = new CasperClient("https://rpc.testnet.casperlabs.io/rpc");
 const contract = new Contracts.Contract(client);
+const WizData = require("@script-wiz/wiz-data");
 
 const keys = Keys.Secp256K1.loadKeyPairFromPrivateFile("test.pem");
 
 const wasm = new Uint8Array(fs.readFileSync("lootbox.wasm"));
 
 const collectionHash = "hash-a4421d0d03d0c23ce485303bf6966360313b0339c0e374a77494d6506e8aa4ae";
-const contractHash = "423aca1c61a4cb740a76a38e41d861ca3960ce0dada24fbc43c7e7f25db6e2e2";
-const tokenId = 2;
+const contractHash = "c7379c27496eae16f0ba7c6346b39a7622fc57b6d3b032a795389cc97bd64cb8";
+const tokenId = 10;
 
 class CasperHelpers {
   static stringToKey(string) {
@@ -42,7 +43,7 @@ class CasperHelpers {
 
 async function install() {
   const args = RuntimeArgs.fromMap({
-    name: CLValueBuilder.string("AABBCC"),
+    name: CLValueBuilder.string("OG-A"),
     description: CLValueBuilder.string("lotlootloot"),
     asset: CLValueBuilder.string("asset"),
     nft_collection: CasperHelpers.stringToKey(collectionHash),
@@ -93,7 +94,7 @@ const addItem = async () => {
 
   // operator = Raffle Contract hash
   const args = RuntimeArgs.fromMap({
-    item_name: CLValueBuilder.string("Item-1"),
+    item_name: CLValueBuilder.string("Item-2"),
     token_id: CLValueBuilder.u64(tokenId),
   });
 
@@ -128,10 +129,101 @@ const purchase = async () => {
   }
 };
 
+const claim = async () => {
+  // collection hash
+  contract.setContractHash("hash-" + contractHash);
+
+  // operator = Raffle Contract hash
+  const args = RuntimeArgs.fromMap({
+    item_index: CLValueBuilder.u64(7),
+  });
+
+  const deploy = contract.callEntrypoint("claim", args, keys.publicKey, "casper-test", "12000000000", [keys]);
+
+  try {
+    const tx = await client.putDeploy(deploy);
+
+    console.log("tx", tx);
+  } catch (error) {
+    console.log("error", error);
+    return error;
+  }
+};
+
+const hex2a = (hexx) => {
+  const hex = hexx.toString(); //force conversion
+  let str = "";
+  for (var i = 0; i < hex.length; i += 2) str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+  return str;
+};
+
+const fetchData = async () => {
+  const instance = new CasperServiceByJsonRPC("https://rpc.testnet.casperlabs.io/rpc");
+  const stateRootHash = await instance.getStateRootHash();
+
+  const dt = await client.nodeClient.getBlockState(stateRootHash, `hash-${contractHash}`, []);
+  const urefMap = dt.Contract.namedKeys.find((nm) => nm.name === "items");
+  const uref = urefMap.key;
+  const dictKey = "1";
+
+  const body = {
+    jsonrpc: "2.0",
+    id: "1",
+    method: "state_get_dictionary_item",
+    params: {
+      state_root_hash: stateRootHash,
+      dictionary_identifier: {
+        URef: {
+          seed_uref: uref,
+          dictionary_item_key: dictKey,
+        },
+      },
+    },
+  };
+
+  const res = await fetch("https://node-clarity-testnet.make.services/rpc", {
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+    method: "POST",
+  });
+
+  const data = await res.json();
+  const nonparsedData = data.result.stored_value.CLValue.bytes;
+
+  const id = nonparsedData.slice(0, 16);
+
+  const rarity = nonparsedData.slice(16, 32);
+  const tokenId = nonparsedData.slice(32, 48);
+  const name = nonparsedData.slice(48);
+
+  const idLe = WizData.hexLE(id);
+
+  const idValue = parseInt(idLe, 16);
+
+  const rarityLe = WizData.hexLE(rarity);
+
+  const rarityValue = parseInt(rarityLe, 16);
+
+  const tokenIdLe = WizData.hexLE(tokenId);
+
+  const tokenIdValue = parseInt(tokenId, 16);
+
+  const nameText = hex2a(name);
+
+  // const data = (await contract.queryContractDictionary("items", "2")).isCLValue;
+  // console.log(x);
+};
+
 // install();
 
 // approve();
 
 // addItem();
 
-purchase();
+// purchase();
+
+// claim();
+
+// fetchData();
