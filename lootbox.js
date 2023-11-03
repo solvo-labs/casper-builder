@@ -12,7 +12,8 @@ const wasm2 = new Uint8Array(fs.readFileSync("lootbox_deposit_contract.wasm"));
 
 const collectionHash = "hash-38a4ec57803d54a38f367de36192fb532fcb0ec01b80a9b38635d549a5b3f728";
 const contractHash = "be6d47ef281b9a346cfea3796a22699c6f2fd7bbc063738b7df99f6a0089d94c";
-const tokenId = 3;
+const tokenId = 0;
+const price = 20;
 
 class CasperHelpers {
   static stringToKey(string) {
@@ -44,14 +45,14 @@ class CasperHelpers {
 
 async function install() {
   const args = RuntimeArgs.fromMap({
-    name: CLValueBuilder.string("6666"),
+    name: CLValueBuilder.string("demotest"),
     description: CLValueBuilder.string("lotlootloot"),
     asset: CLValueBuilder.string("asset"),
     nft_collection: CasperHelpers.stringToKey(collectionHash),
-    lootbox_price: CLValueBuilder.u512(5 * Math.pow(10, 9)),
+    lootbox_price: CLValueBuilder.u512(price * Math.pow(10, 9)),
     items_per_lootbox: CLValueBuilder.u64(2),
-    max_lootboxes: CLValueBuilder.u64(2),
-    max_items: CLValueBuilder.u64(2),
+    max_lootboxes: CLValueBuilder.u64(5),
+    max_items: CLValueBuilder.u64(10),
   });
 
   const deploy = contract.install(wasm, args, "110000000000", keys.publicKey, "casper-test", [keys]);
@@ -139,6 +140,47 @@ const claim = async () => {
   });
 
   const deploy = contract.callEntrypoint("claim", args, keys.publicKey, "casper-test", "12000000000", [keys]);
+
+  try {
+    const tx = await client.putDeploy(deploy);
+
+    console.log("tx", tx);
+  } catch (error) {
+    console.log("error", error);
+    return error;
+  }
+};
+
+const setRarity = async () => {
+  // collection hash
+  contract.setContractHash("hash-" + contractHash);
+
+  // operator = Raffle Contract hash
+  const args = RuntimeArgs.fromMap({
+    item_index: CLValueBuilder.u64(1),
+    item_index: CLValueBuilder.u64(10),
+  });
+
+  const deploy = contract.callEntrypoint("set_rarity", args, keys.publicKey, "casper-test", "500000000", [keys]);
+
+  try {
+    const tx = await client.putDeploy(deploy);
+
+    console.log("tx", tx);
+  } catch (error) {
+    console.log("error", error);
+    return error;
+  }
+};
+
+const withdraw = async () => {
+  // collection hash
+  contract.setContractHash("hash-" + contractHash);
+
+  // operator = Raffle Contract hash
+  const args = RuntimeArgs.fromMap({});
+
+  const deploy = contract.callEntrypoint("withdraw", args, keys.publicKey, "casper-test", "500000000", [keys]);
 
   try {
     const tx = await client.putDeploy(deploy);
