@@ -10,8 +10,8 @@ const keys = Keys.Secp256K1.loadKeyPairFromPrivateFile("test.pem");
 const wasm = new Uint8Array(fs.readFileSync("lootbox.wasm"));
 const wasm2 = new Uint8Array(fs.readFileSync("lootbox_deposit_contract.wasm"));
 
-const collectionHash = "hash-38a4ec57803d54a38f367de36192fb532fcb0ec01b80a9b38635d549a5b3f728";
-const contractHash = "be6d47ef281b9a346cfea3796a22699c6f2fd7bbc063738b7df99f6a0089d94c";
+const collectionHash = "hash-e765e152c459e7a2b6593f9162a718114c9777c268877a3db95c3ad3dad46348";
+const contractHash = "85a69b4997ca8b5c1b682b23c5e4d821fc832c014d1aa97fb3b039dcd014d207";
 const tokenId = 0;
 const price = 20;
 
@@ -55,7 +55,7 @@ async function install() {
     max_items: CLValueBuilder.u64(10),
   });
 
-  const deploy = contract.install(wasm, args, "110000000000", keys.publicKey, "casper-test", [keys]);
+  const deploy = contract.install(wasm, args, "130000000000", keys.publicKey, "casper-test", [keys]);
   console.log(deploy);
   try {
     const x = await client.putDeploy(deploy);
@@ -115,7 +115,7 @@ const addItem = async () => {
 const purchase = async () => {
   const args = RuntimeArgs.fromMap({
     lootbox_contract_hash: new CLAccountHash(Buffer.from(contractHash, "hex")),
-    amount: CLValueBuilder.u512(5 * 1_000_000_000),
+    amount: CLValueBuilder.u512(price * 1_000_000_000),
   });
 
   const deploy = contract.install(wasm2, args, "20000000000", keys.publicKey, "casper-test", [keys]);
@@ -133,10 +133,10 @@ const purchase = async () => {
 const claim = async () => {
   // collection hash
   contract.setContractHash("hash-" + contractHash);
-
+  //8 , 0 , 2 , 4
   // operator = Raffle Contract hash
   const args = RuntimeArgs.fromMap({
-    item_index: CLValueBuilder.u64(1),
+    item_index: CLValueBuilder.u64(8),
   });
 
   const deploy = contract.callEntrypoint("claim", args, keys.publicKey, "casper-test", "12000000000", [keys]);
@@ -157,11 +157,11 @@ const setRarity = async () => {
 
   // operator = Raffle Contract hash
   const args = RuntimeArgs.fromMap({
-    item_index: CLValueBuilder.u64(1),
-    item_index: CLValueBuilder.u64(10),
+    item_index: CLValueBuilder.u64(3),
+    rarity: CLValueBuilder.u64(10),
   });
 
-  const deploy = contract.callEntrypoint("set_rarity", args, keys.publicKey, "casper-test", "500000000", [keys]);
+  const deploy = contract.callEntrypoint("set_rarity", args, keys.publicKey, "casper-test", "5000000000", [keys]);
 
   try {
     const tx = await client.putDeploy(deploy);
@@ -180,7 +180,7 @@ const withdraw = async () => {
   // operator = Raffle Contract hash
   const args = RuntimeArgs.fromMap({});
 
-  const deploy = contract.callEntrypoint("withdraw", args, keys.publicKey, "casper-test", "500000000", [keys]);
+  const deploy = contract.callEntrypoint("withdraw", args, keys.publicKey, "casper-test", "5000000000", [keys]);
 
   try {
     const tx = await client.putDeploy(deploy);
@@ -206,7 +206,7 @@ const fetchData = async () => {
   const dt = await client.nodeClient.getBlockState(stateRootHash, `hash-${contractHash}`, []);
   const urefMap = dt.Contract.namedKeys.find((nm) => nm.name === "items");
   const uref = urefMap.key;
-  const dictKey = "1";
+  const dictKey = "3";
 
   const body = {
     jsonrpc: "2.0",
@@ -268,6 +268,10 @@ const fetchData = async () => {
 
 // purchase();
 
-claim();
+// claim();
 
-// fetchData();
+// setRarity();
+
+// withdraw();
+
+fetchData();
