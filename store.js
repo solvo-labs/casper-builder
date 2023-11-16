@@ -3,9 +3,9 @@ const { RuntimeArgs, CLValueBuilder, Contracts, CasperClient, Keys, CLPublicKey,
 const { BN } = require("bn.js");
 const client = new CasperClient("https://rpc.testnet.casperlabs.io/rpc");
 
-const wasm = new Uint8Array(fs.readFileSync("store.wasm"));
+const wasm = new Uint8Array(fs.readFileSync("storage.wasm"));
 
-const keys = Keys.Ed25519.loadKeyPairFromPrivateFile("test.pem");
+const keys = Keys.Secp256K1.loadKeyPairFromPrivateFile("test.pem");
 
 const contract = new Contracts.Contract(client);
 
@@ -29,7 +29,7 @@ class CasperHelpers {
 
 async function install() {
   const args = RuntimeArgs.fromMap({
-    name: CLValueBuilder.string("demo-2"),
+    name: CLValueBuilder.string("lootbox_storage_testnet"),
   });
 
   const deploy = contract.install(wasm, args, "100000000000", keys.publicKey, "casper-test", [keys]);

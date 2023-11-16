@@ -10,10 +10,10 @@ const keys = Keys.Secp256K1.loadKeyPairFromPrivateFile("test.pem");
 const wasm = new Uint8Array(fs.readFileSync("lootbox.wasm"));
 const wasm2 = new Uint8Array(fs.readFileSync("lootbox_deposit_contract.wasm"));
 
-const collectionHash = "hash-e765e152c459e7a2b6593f9162a718114c9777c268877a3db95c3ad3dad46348";
-const contractHash = "85a69b4997ca8b5c1b682b23c5e4d821fc832c014d1aa97fb3b039dcd014d207";
-const tokenId = 0;
-const price = 20;
+const collectionHash = "hash-70dea2ac9b21e0fadf4002e46f278d70abfd3ac64416215c069eda636fa8ce79";
+const contractHash = "3914a8d7590dd76df97835da44b71a3113d8b250cf1103b16e6a4dec59161482";
+const tokenId = 7;
+const price = 1;
 
 class CasperHelpers {
   static stringToKey(string) {
@@ -45,14 +45,15 @@ class CasperHelpers {
 
 async function install() {
   const args = RuntimeArgs.fromMap({
-    name: CLValueBuilder.string("demotest"),
-    description: CLValueBuilder.string("lotlootloot"),
+    name: CLValueBuilder.string("333333"),
+    description: CLValueBuilder.string("mylootboxxxxx"),
     asset: CLValueBuilder.string("asset"),
     nft_collection: CasperHelpers.stringToKey(collectionHash),
     lootbox_price: CLValueBuilder.u512(price * Math.pow(10, 9)),
     items_per_lootbox: CLValueBuilder.u64(2),
-    max_lootboxes: CLValueBuilder.u64(5),
-    max_items: CLValueBuilder.u64(10),
+    max_lootboxes: CLValueBuilder.u64(2),
+    max_items: CLValueBuilder.u64(4),
+    storage_key: new CLAccountHash(Buffer.from("8ed16330ef4d678b18b14de9d88e19643342cfe46b80c29bdcbe0f5c1e4081b9", "hex")),
   });
 
   const deploy = contract.install(wasm, args, "130000000000", keys.publicKey, "casper-test", [keys]);
@@ -98,6 +99,7 @@ const addItem = async () => {
   const args = RuntimeArgs.fromMap({
     item_name: CLValueBuilder.string("Item-" + tokenId),
     token_id: CLValueBuilder.u64(tokenId),
+    rarity: CLValueBuilder.u64(1),
   });
 
   const deploy = contract.callEntrypoint("add_item", args, keys.publicKey, "casper-test", "12000000000", [keys]);
@@ -206,7 +208,7 @@ const fetchData = async () => {
   const dt = await client.nodeClient.getBlockState(stateRootHash, `hash-${contractHash}`, []);
   const urefMap = dt.Contract.namedKeys.find((nm) => nm.name === "items");
   const uref = urefMap.key;
-  const dictKey = "3";
+  // const dictKey = index.toString();
 
   const body = {
     jsonrpc: "2.0",
@@ -217,7 +219,7 @@ const fetchData = async () => {
       dictionary_identifier: {
         URef: {
           seed_uref: uref,
-          dictionary_item_key: dictKey,
+          dictionary_item_key: "0",
         },
       },
     },
@@ -263,10 +265,9 @@ const fetchData = async () => {
 // install();
 
 // approve();
-
 // addItem();
 
-// purchase();
+purchase();
 
 // claim();
 
@@ -274,4 +275,20 @@ const fetchData = async () => {
 
 // withdraw();
 
-fetchData();
+const sleep = (ms) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+const init = async () => {
+  fetchData();
+
+  await sleep(1000);
+  fetchData();
+
+  await sleep(1000);
+  fetchData();
+
+  await sleep(1000);
+  fetchData();
+};
+// init();
