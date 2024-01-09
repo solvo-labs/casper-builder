@@ -17,14 +17,15 @@ const { BN } = require("bn.js");
 const client = new CasperClient("https://rpc.testnet.casperlabs.io/rpc");
 
 const wasm = new Uint8Array(fs.readFileSync("timeable_mergeable_nft.wasm"));
+const wasmDeposit = new Uint8Array(fs.readFileSync("timeable_nft_deposit.wasm"));
 
 const keys = Keys.Secp256K1.loadKeyPairFromPrivateFile("test.pem");
 const yedek = Keys.Secp256K1.loadKeyPairFromPrivateFile("yedek_secret_key.pem");
 
 const contract = new Contracts.Contract(client);
 
-const contractHash = "hash-0fd47c1f089cdec3be2e7d02080ea808712f8124826a97f43e51f9f33f87ca2d";
-const collectionHash = "7b2d024342b45a40f663503f358ba1532c507ec5ab2db1becc61ba1b88771a32";
+const contractHash = "hash-57be357db62126e70bbe7090731c725e81d32c7a6b929a3ce0403ced199ef7a8";
+const collectionHash = "4ffb1a5a172f82febd1b7fe051aa07989014fe416fb22e20fcc8c1e3361f357d";
 
 class CasperHelpers {
   static stringToKey(string) {
@@ -45,9 +46,11 @@ class CasperHelpers {
 }
 
 async function install() {
-  const args = RuntimeArgs.fromMap({});
+  const args = RuntimeArgs.fromMap({
+    fee_wallet: CLValueBuilder.key(CLPublicKey.fromHex("02026d9f5d2a12737c06d0658f6bfdd6e1c06ef9fad959effa72f81143f4dd20635b")),
+  });
 
-  const deploy = contract.install(wasm, args, "120000000000", keys.publicKey, "casper-test", [keys]);
+  const deploy = contract.install(wasm, args, "140000000000", keys.publicKey, "casper-test", [keys]);
 
   try {
     const tx = await client.putDeploy(deploy);
@@ -149,7 +152,9 @@ const approve = async () => {
   // operator = Raffle Contract hash
   const args = RuntimeArgs.fromMap({
     operator: new CLKey(new CLByteArray(Uint8Array.from(Buffer.from(contractHash.slice(5), "hex")))),
-    token_id: CLValueBuilder.u64(0),
+    // operator: new CLKey(new CLByteArray(Uint8Array.from(Buffer.from("02026d9f5d2a12737c06d0658f6bfdd6e1c06ef9fad959effa72f81143f4dd20635b", "hex")))),
+    // operator: CLValueBuilder.key(yedek.publicKey),
+    token_id: CLValueBuilder.u64(19),
   });
 
   const deploy = contract.callEntrypoint("approve", args, keys.publicKey, "casper-test", "4000000000", [keys]);
@@ -169,7 +174,7 @@ const mint_timeable_nft = async () => {
 
   const args = RuntimeArgs.fromMap({
     collection: CasperHelpers.stringToKey(collectionHash),
-    metadata: CLValueBuilder.string(JSON.stringify({ name: "test", description: "bbbbb", asset: "cccccc", timeable: true, mergable: false, timestamp: 1701082495000 })),
+    metadata: CLValueBuilder.string(JSON.stringify({ name: "test12345", description: "bbbbb", asset: "cccccc", timeable: true, timestamp: 1701082495000 })),
   });
 
   const deploy = contract.callEntrypoint("mint_timeable_nft", args, keys.publicKey, "casper-test", "15000000000", [keys]);
@@ -189,7 +194,7 @@ const burn_timeable_nft = async () => {
 
   const args = RuntimeArgs.fromMap({});
 
-  const deploy = contract.callEntrypoint("burn_timeable_nft", args, yedek.publicKey, "casper-test", "25000000000", [yedek]);
+  const deploy = contract.callEntrypoint("burn_timeable_nft", args, yedek.publicKey, "casper-test", "15000000000", [yedek]);
 
   try {
     const tx = await client.putDeploy(deploy);
@@ -205,7 +210,8 @@ const register_owner = async () => {
   contract.setContractHash("hash-" + collectionHash);
 
   const args = RuntimeArgs.fromMap({
-    token_owner: CLValueBuilder.key(CLPublicKey.fromHex("0203752bf98c82f2705c6ca16d445d7d9bd2bc552880d19a66cd925008bae5a6c0dc")),
+    token_owner: CLValueBuilder.key(yedek.publicKey),
+    // token_owner: CLValueBuilder.key(CLPublicKey.fromHex("02026d9f5d2a12737c06d0658f6bfdd6e1c06ef9fad959effa72f81143f4dd20635b")),
   });
 
   const deploy = contract.callEntrypoint("register_owner", args, keys.publicKey, "casper-test", "15000000000", [keys]);
@@ -220,10 +226,58 @@ const register_owner = async () => {
   }
 };
 
+async function pay() {
+  const args = RuntimeArgs.fromMap({
+    amount: CLValueBuilder.u512(5 * 1_000_000_000),
+    nft_contract_hash: new CLAccountHash(Buffer.from(contractHash.slice(5), "hex")),
+    collection: CasperHelpers.stringToKey(collectionHash),
+    metadata: CLValueBuilder.string(JSON.stringify({ name: Math.random().toString(), description: "bbbbb", asset: "cccccc", timeable: true, timestamp: 1701699477000 })),
+    // target_address: CLValueBuilder.key(CLPublicKey.fromHex("020343b6620c012fd347d542e30ec07b2c9ff90a6871e5dcb77f7b51124a9863eeb8")),
+  });
+
+  const deploy = contract.install(wasmDeposit, args, "20000000000", keys.publicKey, "casper-test", [keys]);
+
+  try {
+    const tx = await client.putDeploy(deploy);
+
+    console.log("tx", tx);
+  } catch (error) {
+    console.log("error", error);
+    return error;
+  }
+}
+
+const fetchData = async () => {
+  contract.setContractHash(contractHash);
+
+  const data = await contract.queryContractDictionary("timeable_nfts", "5");
+
+  console.log(data);
+};
+
+const transfer = async () => {
+  contract.setContractHash(contractHash);
+
+  const args = RuntimeArgs.fromMap({
+    collection: CasperHelpers.stringToKey(collectionHash),
+    source: CLValueBuilder.key(CLPublicKey.fromHex("0203752bf98c82f2705c6ca16d445d7d9bd2bc552880d19a66cd925008bae5a6c0dc")),
+    target: CLValueBuilder.key(CLPublicKey.fromHex("0203f6b43e33cfbaf54bcf3c6f817ad67781eee9b40478677245a7f834388204800b")),
+    token_id: CLValueBuilder.u64(4),
+  });
+
+  const deploy = contract.callEntrypoint("transfer", args, keys.publicKey, "casper-test", "30000000000", [keys]);
+
+  try {
+    const tx = await client.putDeploy(deploy);
+
+    console.log("tx", tx);
+  } catch (error) {
+    console.log("error", error);
+    return error;
+  }
+};
+
 // install();
-
-// mint_timeable_nft();
-
 // approve();
 
 // mint();
@@ -236,3 +290,8 @@ const register_owner = async () => {
 // register_owner();
 
 burn_timeable_nft();
+// pay();
+
+// fetchData();
+
+// transfer();

@@ -11,8 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "@script-wiz/wiz-data": "^1.0.3",
-    "axios": "^1.6.0",
+    "axios": "^1.6.2",
     "bn.js": "^5.2.1",
-    "casper-js-sdk": "^2.13.1"
+    "casper-js-sdk": "^2.15.3"
   }
 }
